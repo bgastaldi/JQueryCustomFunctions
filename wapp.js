@@ -116,8 +116,6 @@ var Wapp = function() {
                  */
                 disabled : function(){
                     $("input, select, textarea").attr("disabled","disabled");
-                    $("select").attr("disabled","disabled");
-                    $("textarea").attr("disabled","disabled");
                     $("input[type='submit'], input[name='submit'], button[type='submit'], button[name='submit'], input[type='file']").hide();
                     $(".date-set, .date-reset, .spinner-up, .spinner-down").hide();
                 }
