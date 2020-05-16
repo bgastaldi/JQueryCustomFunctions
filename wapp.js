@@ -8,6 +8,7 @@ var Wapp = function() {
      *  console.log(Wapp.form().get());
      *  console.log(Wapp.element().get('rel', 'usueml'));
      */
+    
 
     return {
         init: function() {
@@ -122,64 +123,194 @@ var Wapp = function() {
 
                 /**
                  * VALIDANDO O FORMULARIO
+                 *
+                    var aCustom = {
+                        "usucrc":[
+                            {'type':'id', 'name':'salesman', 'condition':'=', 'value':'checked'}
+                        ],
+                        "usunre1":[
+                            {'type':'id', 'name':'usunm', 'condition':'=', 'value':'E'}
+                        ],
+                        "usunre":[
+                            {'type':'id', 'name':'usunm', 'condition':'=', 'value':'A', 'compare':'or'},
+                            {'type':'id', 'name':'usunm', 'condition':'=', 'value':'I'}
+                        ]
+                    };
+
+           
+                    Wapp.form().validate('#formEdit');
+                    Wapp.form().validate('#formEdit', aCustom);
                  */
-                validate : function (forms){
+                
+                validate : function (forms, aCustom = null){
                     var form1 = $(forms).validate({
                          submitHandler: function (form) {
                             alert();
                          }
                     });
 
-                    $('.fld_required, .dig_required, .dat_required, .eml_required, .tel_required').each(function() {
+                    $('.fld_required, .dig_required, .dat_required, .eml_required, .tel_required, .rmv_required').each(function() {
                         
-                        if($(this).hasClass("fld_required")){
-                            $(this).rules("add", {
-                                required: true
-                            });
-                        }
+                        if($(this).hasClass("rmv_required")){
+                            $(this).rules("remove");
+                        }else{
+                            if($(this).hasClass("fld_required")){
+                                $(this).rules("add", {
+                                    required: true
+                                });
+                            }
 
-                        if($(this).hasClass("dig_required")){
-                            $(this).rules("add", {
-                                digits: true
-                            });
-                        }
+                            if($(this).hasClass("dig_required")){
+                                $(this).rules("add", {
+                                    digits: true
+                                });
+                            }
 
-                        if($(this).hasClass("dat_required")){
-                            $(this).rules("add", {
-                                dateBR: true
-                            });
-                        }
+                            if($(this).hasClass("dat_required")){
+                                $(this).rules("add", {
+                                    dateBR: true
+                                });
+                            }
 
-                        if($(this).hasClass("eml_required")){
-                            $(this).rules("add", {
-                                email: true
-                            });
-                        }
+                            if($(this).hasClass("eml_required")){
+                                $(this).rules("add", {
+                                    email: true
+                                });
+                            }
 
-                        if($(this).hasClass("tel_required")){
-                            $(this).rules("add", {
-                                email: true
-                            });
-                        }
+                            if($(this).hasClass("tel_required")){
+                                $(this).rules("add", {
+                                    email: true
+                                });
+                            }
 
-                        var n = $(this).attr('maxlength');
-                        if (typeof n !== typeof undefined && n !== false) {
-                            $(this).rules("add", {
-                                maxlength: n
-                            });
-                        }
+                            var n = $(this).attr('maxlength');
+                            if (typeof n !== typeof undefined && n !== false) {
+                                $(this).rules("add", {
+                                    maxlength: n
+                                });
+                            }
 
-                        var n = $(this).attr('minlength');
-                        if (typeof n !== typeof undefined && n !== false) {
-                            $(this).rules("add", {
-                                minlength: n
-                            });
+                            var n = $(this).attr('minlength');
+                            if (typeof n !== typeof undefined && n !== false) {
+                                $(this).rules("add", {
+                                    minlength: n
+                                });
+                            }
                         }
 
                     });
 
                     /**
                      * CUSTOM VALIDADORES
+                     */
+                                
+                    var vcFunctions = {          
+                        checkedEqualOnly : function (element, depends, value) {
+                            element.rules("add", {
+                                required: depends+":"+value
+                            });
+                        },
+                        requiredEqualOnly : function (element, depends, value){
+                            element.rules("add", {
+                                required: function(element) {
+                                    return $(depends).val() == value;
+                                }
+                            });
+                        },
+                        requiredDiferentOnly : function (element, depends, value){
+                            element.rules("add", {
+                                required: function(element) {
+                                    return $(depends).val() != value;
+                                }
+                            });
+                        },
+                        requiredEqualAndDual : function(element, depends, value, depends2, value2){
+                            element.rules("add", {
+                                required: function(element) {
+                                    return $(depends).val() == value && $(depends2).val() == value2;
+                                }
+                            });
+                        },
+                        requiredDiferentAndDual : function(element, depends, value, depends2, value2){
+                            element.rules("add", {
+                                required: function(element) {
+                                    return $(depends).val() != value && $(depends2).val() != value2;
+                                }
+                            });
+                        },
+                        requiredEqualOrDual : function(element, depends, value, depends2, value2){
+                            element.rules("add", {
+                                required: function(element) {
+                                    return $(depends).val() == value || $(depends2).val() == value2;
+                                }
+                            });
+                        },
+                        requiredDiferentOrDual : function(element, depends, value, depends2, value2){
+                            element.rules("add", {
+                                required: function(element) {
+                                    return $(depends).val() != value || $(depends2).val() != value2;
+                                }
+                            });
+                        },
+                    };
+                    
+
+                    if(typeof aCustom === 'object' && aCustom !== null) {
+                        $.each(aCustom, function(key, custom) {
+                            if(!$("input[name='"+key+"']").hasClass("rmv_required")){
+                                
+                                var nEl = $(custom).length;
+                                var compare = null;
+                                var dElement = null;
+                                var dValue = null;
+                                let i = 0;
+                                $.each(custom, function(index, obj) {
+
+                                    i++;
+                                    var el = null;
+                                    switch (obj.type) {
+                                      case 'class':
+                                         el = "."+obj.name;
+                                         break;
+                                      case 'name':
+                                         el = "input[name='"+obj.name+"']";
+                                         break;
+                                      default:
+                                        el = "#"+obj.name;
+                                        break;
+                                    }
+
+                                    if(nEl == 2 && i == 1){
+                                        compare = obj.compare;
+                                        dElement = el;
+                                        dValue = obj.value
+                                    }
+
+                                    if(obj.value == 'checked' && nEl == 1){
+                                        vcFunctions.checkedEqualOnly($("input[name='"+key+"']"), el, obj.value);
+                                    }else if(obj.condition == '=' && nEl == 1){
+                                        vcFunctions.requiredEqualOnly($("input[name='"+key+"']"), el, obj.value);
+                                    }else if(obj.condition == '!=' && nEl == 1){
+                                        vcFunctions.requiredDiferentOnly($("input[name='"+key+"']"), el, obj.value);
+                                    }else if(obj.condition == '=' && nEl == 2 && compare == 'and' && i == nEl){
+                                        vcFunctions.requiredEqualAndDual($("input[name='"+key+"']"), dElement, dValue, el, obj.value);
+                                    }else if(obj.condition == '!=' && nEl == 2 && compare == 'and'  && i == nEl){
+                                        vcFunctions.requiredDiferentAndDual($("input[name='"+key+"']"), dElement, dValue, el, obj.value);
+                                    }else if(obj.condition == '=' && nEl == 2 && compare == 'or' && i == nEl){
+                                        vcFunctions.requiredEqualOrDual($("input[name='"+key+"']"), dElement, dValue, el, obj.value);
+                                    }else if(obj.condition == '!=' && nEl == 2 && compare == 'or'  && i == nEl){
+                                        vcFunctions.requiredDiferentOrDual($("input[name='"+key+"']"), dElement, dValue, el, obj.value);
+                                    }
+
+                                });                                
+                            }
+                        }); 
+                    }
+
+
+                    /**
+                     * CUSTOM METODOS
                      */
                     $.validator.addMethod("dateBR", function (value, element) {
                         if (value.length != 10) return (this.optional(element) || false);
@@ -214,7 +345,6 @@ var Wapp = function() {
                 },
             }
         },
-
     }
 
 }();
